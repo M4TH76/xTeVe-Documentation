@@ -77,17 +77,54 @@ xteve_enable=${xteve_enable-"YES"}
 pidfile=${xteve_pidfile-"/var/run/${name}.pid"}
 run_rc_command "$@"
 ```
+## FreeNAS rc.d file
+```
+#!/bin/sh
+
+# $FreeBSD$
+
+# PROVIDE: xTeVe
+# REQUIRE: DAEMON
+
+. /etc/rc.subr
+name=xteve
+user="plex"
+path="/Plex/xteve/xteve"
+config_path="/Plex"
+rcvar=xteve_enable
+
+
+command=/usr/sbin/daemon
+command_args="-f -u ${user} ${path}"
+pidfile=/var/run/xteve.pid
+
+
+
+start_precmd=start_precmd
+stop_postcmd=stop_postcmd
+
+
+start_precmd()
+{
+  export HOME="${config_path}"
+}
+
+stop_postcmd()
+{
+  pids=$(pgrep "$name")
+  pkill -9 "$name"
+  echo "stop $name PID: $pids"
+}
+
+run_rc_command "$1"
+```
+
 **The path to the xteve binary and user must be adjusted.**
 
 3. Save file and execute the following commands:
 ```
 chmod +x /etc/rc.d/xteve
-```
-4. Open the file ``/etc/rc.conf`` with an text editor to add the script to the autostart.
-5. Copy the following content to the end of the file:
-```
-# xTeVe
-xteve_enable="YES"
+sysrc xteve_enable="YES"
 ```
 
 
